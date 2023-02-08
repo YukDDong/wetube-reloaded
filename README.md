@@ -5,12 +5,25 @@
 /login -> Login
 /search -> Search
 
+/users/:id -> See User
+/users/logout -> Log Out
+/users/edit -> Edit My Profile
+/users/delete -> Delete My Profile
 
-/users/edit -> Edit User
-/users/delete -> Delete User
+/videos/:id -> See video
+/videos/:id/edit -> Edit Video
+/videos/:id/delete -> Delete Video
+/videos/upload -> Upload Video
 
-/videos/watch -> Watch video
-/videos/edit -> Edit Video
-/videos/delete -> Delete Video
-/videos/comments -> Comment on a video
-/videos/comments/delete -> Delete A Comment of a Video
+
+
+
+
+
+
+2/9 
+  - Router
+  - Controller
+  - Parameter
+  - 정규식
+  - 템플릿 엔진 Pug

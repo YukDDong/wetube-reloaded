@@ -27,3 +27,10 @@
   - Parameter
   - 정규식
   - 템플릿 엔진 Pug
+
+
+2/10
+  - 상속(pug)
+  - MVP.CSS(임시CSS=>나중에 수정)
+  - Conditional
+  

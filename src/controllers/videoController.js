@@ -1,48 +1,24 @@
-let videos = [
-  {
-    title: "First Video",
-    rating: 5,
-    coments: 2,
-    createdAt: "2 minutes ago",
-    views: 59,
-    id: 1,
-  },
-  {
-    title: "Second Video",
-    rating: 5,
-    coments: 2,
-    createdAt: "2 minutes ago",
-    views: 1,
-    id: 2,
-  },
-  {
-    title: "Third Video",
-    rating: 5,
-    coments: 2,
-    createdAt: "2 minutes ago",
-    views: 59,
-    id: 3,
-  },
-];
+import Video from "../models/Video";
 
-export const trending = (req, res) => {
-  return res.render("home", { pageTitle: "Home", videos })
+
+export const home = (req, res) => {
+  Video.find({}, (error, videos) => {
+    return res.render("home", { pageTitle: "Home", videos: []});
+  });
+  // 여기서 {}는 search terms로 비어있으면 모든 형식을 찾는다를 뜻함
 }
 export const search = (req, res) => res.send("Search");
 export const watch = (req, res) => {
   const id = req.params.id;
-  const video = videos[id-1];
-  return res.render("watch", { pageTitle: `Watching : ${video.title}`, video });
+  return res.render("watch", { pageTitle: `Watching` });
 }
 export const getEdit = (req, res) => {
   const id = req.params.id;
-  const video = videos[id-1];
-  return res.render("edit", { pageTitle: `Editing : ${video.title}`, video});
+  return res.render("edit", { pageTitle: `Editing`});
 }
 export const postEdit = (req, res) => {
   const id = req.params.id;
   const title = req.body.title;
-  videos[id-1].title = title;
   return res.redirect(`/videos/${id}`);
 };
 
@@ -51,14 +27,5 @@ export const getUpload = (req, res) => {
 };
 
 export const postUpload = (req, res) => {
-  const newVideo = {
-    title: req.body.title,
-    rating: 0,
-    coments: 0,
-    createdAt: "just now",
-    views: 0,
-    id: videos.length + 1,
-  };
-  videos.push(newVideo);
   return res.redirect("/");
 };

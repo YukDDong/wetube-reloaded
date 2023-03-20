@@ -2,7 +2,9 @@ import User from "../models/User";
 import fetch from "node-fetch";
 import bcrypt from "bcrypt";
 
-export const getJoin = (req, res) => res.render("join", { pageTitle: "Join" });
+export const getJoin = (req, res) =>
+  res.render("users/join", { pageTitle: "Join" });
+
 export const postJoin = async (req, res) => {
   const { name, username, email, password, password2, location } = req.body;
   const exists = await User.exists({ $or: [{ username }, { email }] });
@@ -10,7 +12,7 @@ export const postJoin = async (req, res) => {
 
   // 입력받은 password 두 개가 일치하는 지 확인하는 조건문
   if (password !== password2) {
-    return res.status(400).render("join", {
+    return res.status(400).render("users/join", {
       pageTitle,
       errorMessage: "Password confirmation does not match.",
     });
@@ -18,7 +20,7 @@ export const postJoin = async (req, res) => {
 
   // db에 같은 username과 email이 존재하는지 확인하는 조건문
   if (exists) {
-    return res.status(400).render("join", {
+    return res.status(400).render("users/join", {
       pageTitle,
       errorMessage: "This username/email is already taken.",
     });
@@ -37,14 +39,15 @@ export const postJoin = async (req, res) => {
     });
     return res.redirect("/login");
   } catch (error) {
-    return res
-      .status(400)
-      .render("join", { pageTitle: "Join", errorMessage: error._message });
+    return res.status(400).render("users/join", {
+      pageTitle: "Join",
+      errorMessage: error._message,
+    });
   }
 };
 
 export const getLogin = (req, res) => {
-  return res.render("login", { pageTitle: "Login" });
+  return res.render("users/login", { pageTitle: "Login" });
 };
 
 export const postLogin = async (req, res) => {
@@ -54,7 +57,7 @@ export const postLogin = async (req, res) => {
   const user = await User.findOne({ username, socialOnly: false });
   // 계정이 존재하는지 체크
   if (!user) {
-    return res.status(400).render("login", {
+    return res.status(400).render("users/login", {
       pageTitle,
       errorMessage: "An account with this username does not exists.",
     });
@@ -144,7 +147,91 @@ export const finishGithubLogin = async (req, res) => {
     return res.redirect("/login");
   }
 };
-export const edit = (req, res) => res.send("Edit");
+export const getEdit = (req, res) => {
+  return res.render("users/edit-profile", { pageTitle: "Edit Profile" });
+};
+export const postEdit = async (req, res) => {
+  const {
+    session: {
+      user: { _id },
+    },
+    body: { name, email, username, location },
+    file,
+  } = req;
+  console.log(file);
+  const pageTitle = "Edit Profile";
+  if (req.session.user.email !== email) {
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(400).render("users/edit-profile", {
+        pageTitle,
+        errorMessage: "This email is already taken.",
+      });
+    }
+  }
+  if (req.session.user.username !== username) {
+    const exists = await User.findOne({ username });
+    if (exists) {
+      return res.status(400).render("users/edit-profile", {
+        pageTitle,
+        errorMessage: "This username is already taken.",
+      });
+    }
+  }
+  await User.findByIdAndUpdate(_id, {
+    name,
+    email,
+    username,
+    location,
+  });
+  req.session.user = {
+    ...req.session.user,
+    name,
+    email,
+    username,
+    location,
+  };
+  return res.redirect("/users/edit");
+};
+
+export const getChangePassword = (req, res) => {
+  if (req.session.user.socialOnly === true) {
+    return res.redirect("/");
+  }
+  return res.render("users/change-password", { pageTitle: "Change Password" });
+};
+
+export const postChangePassword = async (req, res) => {
+  const {
+    session: {
+      user: { _id, password },
+    },
+    body: { oldPassword, newPassword, newPasswordConfirmation },
+  } = req;
+  const ok = await bcrypt.compare(oldPassword, password);
+  if (!ok) {
+    return res.status(400).render("users/change-password", {
+      pageTitle: "Change Password",
+      errorMessage: "기존 비밀번호가 일치하지 않습니다.",
+    });
+  }
+  if (newPassword !== newPasswordConfirmation) {
+    return res.status(400).render("users/change-password", {
+      pageTitle: "Change Password",
+      errorMessage: "비밀번호 확인이 일치하지 않습니다.",
+    });
+  }
+
+  const user = await User.findById(_id);
+  user.password = newPassword;
+  console.log(user.password);
+  await user.save();
+  console.log(user.password);
+  req.session.user.password = user.password;
+  // send notification
+  return res.redirect("/users/logout");
+};
+
 export const logout = (req, res) => {
   req.session.destroy();
   return res.redirect("/");

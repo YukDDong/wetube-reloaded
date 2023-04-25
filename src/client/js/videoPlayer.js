@@ -27,7 +27,8 @@ const handlePlayClick = (e) => {
 };
 
 const handleKeyDownSpacebar = (e) => {
-  if (e.keyCode == 32) {
+  if (e.keyCode == 32 && document.activeElement.tagName != "TEXTAREA") {
+    e.preventDefault();
     handlePlayClick();
   }
 };

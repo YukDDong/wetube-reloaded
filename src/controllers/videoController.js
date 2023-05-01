@@ -83,12 +83,14 @@ export const postUpload = async (req, res) => {
   } = req.session;
   const { video, thumb } = req.files;
   const { title, description, hashtags } = req.body;
+  const isFly = process.env.NODE_ENV === "production";
+
   try {
     const newVideo = await Video.create({
       title,
       description,
-      fileUrl: video[0].path,
-      thumbUrl: thumb[0].path.replace(/[\\]/g, "/"),
+      fileUrl: isFly ? video[0].location : video[0].path,
+      thumbUrl: isFly ? thumb[0].location.replace(/[\\]/g, "/") : thumb[0].path,
       owner: _id,
       hashtags: Video.formatHashtags(hashtags),
     });

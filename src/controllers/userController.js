@@ -177,20 +177,21 @@ export const postEdit = async (req, res) => {
       });
     }
   }
-  await User.findByIdAndUpdate(_id, {
-    avatarUrl: file ? file.path : avatarUrl,
-    name,
-    email,
-    username,
-    location,
-  });
-  req.session.user = {
-    ...req.session.user,
-    name,
-    email,
-    username,
-    location,
-  };
+  const isFly = process.env.NODE_ENV === "production";
+  const updatedUser = await User.findByIdAndUpdate(
+    _id,
+    {
+      avatarUrl: file ? (isFly ? file.location : file.path) : avatarUrl,
+      name,
+      email,
+      username,
+      location,
+    },
+    {
+      new: true,
+    }
+  );
+  req.session.user = updatedUser;
   return res.redirect("/users/edit");
 };
 
